@@ -323,7 +323,7 @@ binary:
 .PHONY: e2e_test
 e2e_test: $(GINKGO) install
 	$(GINKGO) run \
-        --label-filter $(LabelFilter)\
+        --label-filter "$(LabelFilter)"\
         --timeout 5h \
         -r \
         --focus-file tests/e2e/.* \
@@ -332,7 +332,7 @@ e2e_test: $(GINKGO) install
 .PHONY: e2e-seaplane
 e2e-seaplane: $(GINKGO) install
 	$(GINKGO) run \
-		$(if $(LabelFilter),--label-filter $(LabelFilter),) \
+		$(if $(LabelFilter),--label-filter "$(LabelFilter)",) \
 		--timeout 3h \
 		./tests/e2e/seaplane/... \
 		$(NULL)
