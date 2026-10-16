@@ -119,3 +119,27 @@ variable "component_routes" {
   type    = string
   default = null
 }
+
+variable "machine_cidr" {
+  type        = string
+  description = "IP address pool for machines (e.g. 10.0.0.0/16). Must contain the VPC CIDR when using byovpc"
+  default     = null
+}
+
+variable "pod_cidr" {
+  type        = string
+  description = "IP address pool for pods (e.g. 10.128.0.0/14)"
+  default     = null
+}
+
+variable "service_cidr" {
+  type        = string
+  description = "IP address pool for services (e.g. 172.31.0.0/16)"
+  default     = null
+}
+
+variable "host_prefix" {
+  type        = number
+  description = "Prefix size allocated to each node from the pod CIDR. If unset the platform default (23) applies. Requires pod_cidr"
+  default     = null
+}
