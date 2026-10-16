@@ -24,7 +24,15 @@ import (
 var _ = Describe("Seaplane proxy", func() {
 	It("creates, updates, and clears proxy settings on a retained cluster", func(ctx SpecContext) {
 		seaplaneURL := requireEnv("SEAPLANE_URL")
-		clusterName := requireEnv("SEAPLANE_CLUSTER_NAME")
+		// This spec follows the retained-cluster pattern: it updates proxy
+		// settings on a cluster that already exists with Terraform state in a
+		// workspace of the same name. CI provides that cluster via
+		// SEAPLANE_CLUSTER_NAME; standalone runs without one skip the spec
+		// (a generated name would have no cluster or state behind it).
+		clusterName := os.Getenv("SEAPLANE_CLUSTER_NAME")
+		if clusterName == "" {
+			Skip("Test requires a retained Seaplane cluster: set SEAPLANE_CLUSTER_NAME to a cluster whose Terraform state exists in a workspace")
+		}
 		awsRegion := awsRegionRE.FindString(seaplaneURL)
 		Expect(awsRegion).NotTo(BeEmpty(), fmt.Sprintf("cannot derive AWS region from SEAPLANE_URL %q", seaplaneURL))
 		workspace := clusterName
