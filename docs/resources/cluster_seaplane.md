@@ -33,7 +33,7 @@ Manages Cluster resources.
 - `autoscaler_max_pod_grace_period` (Number) AutoscalerMaxPodGracePeriod.
 - `autoscaler_pod_priority_threshold` (Number) AutoscalerPodPriorityThreshold.
 - `aws_roles_ref_ingress_arn` (String) AwsRolesRefIngressARN.
-- `balancing_ignored_labels` (List of String) BalancingIgnoredLabels.
+- `balancing_ignored_labels` (String) BalancingIgnoredLabels.
 - `channel` (String) Channel.
 - `component_routes` (String) ComponentRoutes.
 - `container_log_max_files` (Number) ContainerLogMaxFiles.
@@ -44,12 +44,13 @@ Manages Cluster resources.
 - `delay_after_delete_seconds` (Number) DelayAfterDeleteSeconds.
 - `delay_after_failure_seconds` (Number) DelayAfterFailureSeconds.
 - `delete_protection` (Boolean) Delete_protection.
-- `disabled` (List of String) Disabled.
+- `disabled_capabilities` (String) Disabled_capabilities.
 - `dns_reservation_id` (String) DnsReservationId.
-- `enabled` (List of String) Enabled.
+- `enabled_capabilities` (String) Enabled_capabilities.
 - `expanders` (List of String) Expanders.
 - `expiration_timestamp` (String) Expiration_timestamp.
 - `filters` (String) Filters.
+- `host_prefix` (Number) Host_prefix.
 - `http_proxy` (String) HttpProxy.
 - `https_proxy` (String) HttpsProxy.
 - `image_content_sources` (String) ImageContentSources.
@@ -60,6 +61,7 @@ Manages Cluster resources.
 - `kube_cloud_controller_arn` (String) KubeCloudControllerARN.
 - `kube_reserved` (Map of String) KubeReserved.
 - `local_zone_id` (String) LocalZoneID.
+- `machine_cidr` (String) Machine_cidr.
 - `max_free_difference_ratio_percent` (Number) MaxFreeDifferenceRatioPercent.
 - `max_pods` (Number) MaxPods.
 - `network` (Attributes) (see [below for nested schema](#nestedatt--network))
@@ -71,6 +73,7 @@ Manages Cluster resources.
 - `oidc_providers` (String) OidcProviders.
 - `platform` (String) Platform.
 - `platform_type` (String) PlatformType.
+- `pod_cidr` (String) Pod_cidr.
 - `pod_pids_limit` (Number) PodPidsLimit.
 - `port` (Number) Port.
 - `properties` (Map of String) Properties.
@@ -82,6 +85,7 @@ Manages Cluster resources.
 - `scaling` (String) Scaling.
 - `scheduler_profile` (String) SchedulerProfile.
 - `serialize_image_pulls` (Boolean) SerializeImagePulls.
+- `service_cidr` (String) Service_cidr.
 - `service_endpoints` (String) ServiceEndpoints.
 - `shared_vpc_roles_ref_ingress_arn` (String) SharedVPCRolesRefIngressARN.
 - `storage_arn` (String) StorageARN.

@@ -19,10 +19,12 @@ package seaplane
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2/dsl/core"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/ghttp"
+	. "github.com/openshift-online/ocm-sdk-go/testing"
 
 	. "github.com/terraform-redhat/terraform-provider-rhcs/subsystem/framework"
 )
@@ -530,6 +532,207 @@ var _ = Describe("rhcs_nodepool_seaplane", func() {
 
 			runOutput = Terraform.Apply()
 			Expect(runOutput.ExitCode).To(BeZero())
+		})
+	})
+
+	Context("NodePool tags", func() {
+		var seaplaneServer *Server
+
+		// clusterResponse is the parent cluster the PostExpand handler fetches
+		// to compute the worker instance profile.
+		clusterResponse := `{"metadata":{"uid":"test-cluster-id","name":"test-cluster"},"spec":{"hostedCluster":{"platform":{"type":"AWS","aws":{"region":"us-east-1","rolesRef":{"nodePoolManagementARN":"arn:aws:iam::123456789012:role/test-cluster-NodePool"}}}}}}`
+
+		nodepoolWithTags := func(tags string) string {
+			return fmt.Sprintf(`{
+				"metadata": {
+					"uid": "test-nodepool-id",
+					"name": "test-cluster.worker",
+					"creationTimestamp": "2024-01-01T00:00:00Z"
+				},
+				"spec": {
+					"autoRepair": true,
+					"nodePool": {
+						"clusterName": "test-cluster",
+						"platform": {
+							"type": "AWS",
+							"aws": {
+									"subnet": { "id": "subnet-0abc123" },
+									"instanceType": "m5.xlarge",
+									"resourceTags": [%s]
+								}
+							},
+							"replicas": 3
+						}
+					},
+				"status": { "phase": "Ready" }
+			}`, tags)
+		}
+
+		initialTagsJSON := `{"key":"aaa","value":"bbb"},{"key":"ccc","value":"ddd"}`
+		updatedTagsJSON := `{"key":"aaa","value":"bbb"},{"key":"environment","value":"production"}`
+
+		header := http.Header{"Content-Type": []string{"application/json"}}
+
+		nodepoolSource := func(url, tags string) string {
+			return fmt.Sprintf(`
+				provider "rhcs" {
+					alias          = "hf"
+					seaplane_url = "%s"
+					aws_account_id = "123456789012"
+					aws_region     = "us-east-1"
+				}
+
+				resource "rhcs_nodepool_seaplane" "test" {
+					provider         = rhcs.hf
+					cluster_id       = "test-cluster-id"
+					cluster_name     = "test-cluster"
+					name             = "test-cluster.worker"
+					replicas         = 3
+					subnet_id        = "subnet-0abc123"
+					auto_repair      = true
+					instance_type    = "m5.xlarge"
+					%s
+				}
+			`, url, tags)
+		}
+
+		BeforeEach(func() {
+			seaplaneServer = NewServer()
+		})
+
+		AfterEach(func() {
+			seaplaneServer.Close()
+		})
+
+		It("sends the tags as resourceTags on create", func() {
+			// Route every nodepool read (post-create refresh, later plans) to the
+			// tagged response so queued handlers are only consumed by writes.
+			seaplaneServer.RouteToHandler(
+				http.MethodGet, "/api/v0/nodepools/test-cluster.worker",
+				RespondWith(http.StatusOK, nodepoolWithTags(initialTagsJSON), header),
+			)
+			seaplaneServer.AppendHandlers(
+				CombineHandlers(
+					VerifyRequest(http.MethodGet, "/api/v0/clusters/test-cluster"),
+					RespondWith(http.StatusOK, clusterResponse, header),
+				),
+				CombineHandlers(
+					VerifyRequest(http.MethodPost, "/api/v0/nodepools"),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags | length`, 2),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags[0].key`, "aaa"),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags[0].value`, "bbb"),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags[1].key`, "ccc"),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags[1].value`, "ddd"),
+					RespondWith(http.StatusCreated, nodepoolWithTags(initialTagsJSON), header),
+				),
+			)
+
+			Terraform.Source(nodepoolSource(seaplaneServer.URL(), `
+					tags = {
+						"aaa" = "bbb"
+						"ccc" = "ddd"
+					}`))
+
+			runOutput := Terraform.Apply()
+			Expect(runOutput.ExitCode).To(BeZero())
+
+			By("Planning again to confirm the tags round-trip without drift")
+			planOutput := Terraform.Run("plan", "-no-color")
+			Expect(planOutput.ExitCode).To(BeZero())
+			planOutput.VerifyOutputContainsSubstring("No changes. Your infrastructure matches the configuration")
+		})
+
+		It("updates the tags in place when they change", func() {
+			// V2 divergence from V1: node pool resource tags are mutable, so a tag
+			// change must be applied as an update, not a replacement.
+			seaplaneServer.RouteToHandler(
+				http.MethodGet, "/api/v0/nodepools/test-cluster.worker",
+				RespondWith(http.StatusOK, nodepoolWithTags(initialTagsJSON), header),
+			)
+			seaplaneServer.AppendHandlers(
+				// First apply: create with tags
+				CombineHandlers(
+					VerifyRequest(http.MethodGet, "/api/v0/clusters/test-cluster"),
+					RespondWith(http.StatusOK, clusterResponse, header),
+				),
+				CombineHandlers(
+					VerifyRequest(http.MethodPost, "/api/v0/nodepools"),
+					RespondWith(http.StatusCreated, nodepoolWithTags(initialTagsJSON), header),
+				),
+				// Second apply: PostExpand fetches the parent cluster again before
+				// Update.
+				CombineHandlers(
+					VerifyRequest(http.MethodGet, "/api/v0/clusters/test-cluster"),
+					RespondWith(http.StatusOK, clusterResponse, header),
+				),
+				CombineHandlers(
+					VerifyRequest(http.MethodPut, "/api/v0/nodepools/test-cluster.worker"),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags | length`, 2),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags[0].key`, "aaa"),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags[1].key`, "environment"),
+					VerifyJQ(`.spec.nodePool.platform.aws.resourceTags[1].value`, "production"),
+					RespondWith(http.StatusOK, nodepoolWithTags(updatedTagsJSON), header),
+				),
+			)
+
+			Terraform.Source(nodepoolSource(seaplaneServer.URL(), `
+					tags = {
+						"aaa" = "bbb"
+						"ccc" = "ddd"
+					}`))
+
+			runOutput := Terraform.Apply()
+			Expect(runOutput.ExitCode).To(BeZero())
+
+			Terraform.Source(nodepoolSource(seaplaneServer.URL(), `
+					tags = {
+						"aaa" = "bbb"
+						"environment" = "production"
+					}`))
+
+			runOutput = Terraform.Apply()
+			Expect(runOutput.ExitCode).To(BeZero())
+			// In-place update, not a replacement.
+			runOutput.VerifyOutputContainsSubstring("Apply complete! Resources: 0 added, 1 changed, 0 destroyed.")
+		})
+
+		It("rejects more tags than the Platform API accepts", func() {
+			tags := make([]string, 0, 26)
+			for i := range 26 {
+				tags = append(tags, fmt.Sprintf("    \"tag%d\" = \"value\"", i))
+			}
+
+			Terraform.Source(nodepoolSource(seaplaneServer.URL(), fmt.Sprintf(`
+					tags = {
+%s
+					}`, strings.Join(tags, "\n"))))
+
+			runOutput := Terraform.Apply()
+			Expect(runOutput.ExitCode).ToNot(BeZero())
+			runOutput.VerifyErrorContainsSubstring("a maximum of 25 tags is supported, got 26")
+		})
+
+		It("rejects a tag key reserved for AWS", func() {
+			Terraform.Source(nodepoolSource(seaplaneServer.URL(), `
+					tags = {
+						"aws:cloudformation:stack-name" = "mine"
+					}`))
+
+			runOutput := Terraform.Apply()
+			Expect(runOutput.ExitCode).ToNot(BeZero())
+			runOutput.VerifyErrorContainsSubstring("reserved for AWS use")
+		})
+
+		It("rejects using tags and resource_tags together", func() {
+			Terraform.Source(nodepoolSource(seaplaneServer.URL(), `
+					resource_tags = jsonencode([{ key = "aaa", value = "bbb" }])
+					tags = {
+						"ccc" = "ddd"
+					}`))
+
+			runOutput := Terraform.Apply()
+			Expect(runOutput.ExitCode).ToNot(BeZero())
+			runOutput.VerifyErrorContainsSubstring("tags and resource_tags are mutually exclusive")
 		})
 	})
 

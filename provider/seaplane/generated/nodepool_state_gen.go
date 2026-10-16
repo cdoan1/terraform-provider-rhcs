@@ -44,6 +44,7 @@ type NodePoolState struct {
 	Taints                        types.List   `tfsdk:"taints"`
 	Tuning_config                 types.List   `tfsdk:"tuning_config"`
 	Cluster_id                    types.String `tfsdk:"cluster_id"`
+	Tags                          types.Map    `tfsdk:"tags"`
 	Phase                         types.String `tfsdk:"phase"`
 	Autoscaling                   types.Object `tfsdk:"autoscaling"`
 }

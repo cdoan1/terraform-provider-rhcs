@@ -189,7 +189,7 @@ Import format: `<cluster_uuid>/<nodepool_name>`
 
 #### Seaplane-only fields (no HCP equivalent)
 
-`operator_roles_prefix`, `vpc_id`, `expiration_timestamp`, `phase` (vs HCP's `state`), `management_cluster`, `aws_partition`, `creator_arn`
+`operator_roles_prefix`, `vpc_id`, `expiration_timestamp`, `phase` (versus HCP's `state`), `management_cluster`, `aws_partition`, `creator_arn`
 
 ---
 

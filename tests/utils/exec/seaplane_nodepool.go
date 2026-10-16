@@ -22,8 +22,11 @@ type SeaplaneNodePoolArgs struct {
 	InstanceType                  *string              `hcl:"instance_type"`
 	DiskSize                      *int                 `hcl:"disk_size"`
 	EC2InstanceMetadataHttpTokens *string              `hcl:"ec2_instance_metadata_http_tokens"`
-	Tags                          map[string]string    `hcl:"tags"`
-	Labels                        map[string]string    `hcl:"labels"`
+	// Tags are customer AWS resource tags applied to the node pool instances
+	// and their initial EBS volumes. Mutable: updating the map replaces the
+	// full tag set.
+	Tags   *map[string]string `hcl:"tags"`
+	Labels map[string]string  `hcl:"labels"`
 }
 
 type NodePoolAutoscaling struct {
@@ -34,12 +37,13 @@ type NodePoolAutoscaling struct {
 
 // SeaplaneNodePoolOutput holds the Terraform output values from the nodepool manifest.
 type SeaplaneNodePoolOutput struct {
-	NodePoolID   string `json:"nodepool_id,omitempty"`
-	NodePoolName string `json:"nodepool_name,omitempty"`
-	Phase        string `json:"nodepool_phase,omitempty"`
-	Replicas     *int   `json:"nodepool_replicas,omitempty"`
-	MinReplicas  *int   `json:"nodepool_min_replicas,omitempty"`
-	MaxReplicas  *int   `json:"nodepool_max_replicas,omitempty"`
+	NodePoolID   string            `json:"nodepool_id,omitempty"`
+	NodePoolName string            `json:"nodepool_name,omitempty"`
+	Phase        string            `json:"nodepool_phase,omitempty"`
+	Replicas     *int              `json:"nodepool_replicas,omitempty"`
+	MinReplicas  *int              `json:"nodepool_min_replicas,omitempty"`
+	MaxReplicas  *int              `json:"nodepool_max_replicas,omitempty"`
+	Tags         map[string]string `json:"nodepool_tags,omitempty"`
 }
 
 // SeaplaneNodePoolService manages the lifecycle of an rhcs_nodepool_seaplane

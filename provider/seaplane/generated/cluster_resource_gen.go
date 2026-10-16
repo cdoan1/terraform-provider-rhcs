@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -207,15 +208,19 @@ func (r *ClusterResource) Schema(
 				MarkdownDescription: "Scaling.",
 				Optional:            true,
 			},
-			"disabled": schema.ListAttribute{
-				MarkdownDescription: "Disabled.",
+			"disabled_capabilities": schema.StringAttribute{
+				MarkdownDescription: "Disabled_capabilities.",
 				Optional:            true,
-				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
-			"enabled": schema.ListAttribute{
-				MarkdownDescription: "Enabled.",
+			"enabled_capabilities": schema.StringAttribute{
+				MarkdownDescription: "Enabled_capabilities.",
 				Optional:            true,
-				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"channel": schema.StringAttribute{
 				MarkdownDescription: "Channel.",
@@ -432,6 +437,34 @@ func (r *ClusterResource) Schema(
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 					boolplanmodifier.RequiresReplace(),
+				},
+			},
+			"machine_cidr": schema.StringAttribute{
+				MarkdownDescription: "Machine_cidr.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"pod_cidr": schema.StringAttribute{
+				MarkdownDescription: "Pod_cidr.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"service_cidr": schema.StringAttribute{
+				MarkdownDescription: "Service_cidr.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"host_prefix": schema.Int64Attribute{
+				MarkdownDescription: "Host_prefix.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
 				},
 			},
 			"api_url": schema.StringAttribute{
@@ -975,15 +1008,11 @@ func terraformClusterToNative(tf *ClusterState) (*ClusterStateNative, diag.Diagn
 	if !tf.Scaling.IsNull() && !tf.Scaling.IsUnknown() {
 		native.Scaling = tf.Scaling.ValueString()
 	}
-	if !tf.Disabled.IsNull() && !tf.Disabled.IsUnknown() {
-		items, collectionDiags := terraformListToStringSlice(tf.Disabled)
-		diags = append(diags, collectionDiags...)
-		native.Disabled = items
+	if !tf.Disabled_capabilities.IsNull() && !tf.Disabled_capabilities.IsUnknown() {
+		native.Disabled_capabilities = tf.Disabled_capabilities.ValueString()
 	}
-	if !tf.Enabled.IsNull() && !tf.Enabled.IsUnknown() {
-		items, collectionDiags := terraformListToStringSlice(tf.Enabled)
-		diags = append(diags, collectionDiags...)
-		native.Enabled = items
+	if !tf.Enabled_capabilities.IsNull() && !tf.Enabled_capabilities.IsUnknown() {
+		native.Enabled_capabilities = tf.Enabled_capabilities.ValueString()
 	}
 	if !tf.Channel.IsNull() && !tf.Channel.IsUnknown() {
 		native.Channel = tf.Channel.ValueString()
@@ -1184,6 +1213,18 @@ func terraformClusterToNative(tf *ClusterState) (*ClusterStateNative, diag.Diagn
 	if !tf.No_cni.IsNull() && !tf.No_cni.IsUnknown() {
 		native.No_cni = tf.No_cni.ValueBool()
 	}
+	if !tf.Machine_cidr.IsNull() && !tf.Machine_cidr.IsUnknown() {
+		native.Machine_cidr = tf.Machine_cidr.ValueString()
+	}
+	if !tf.Pod_cidr.IsNull() && !tf.Pod_cidr.IsUnknown() {
+		native.Pod_cidr = tf.Pod_cidr.ValueString()
+	}
+	if !tf.Service_cidr.IsNull() && !tf.Service_cidr.IsUnknown() {
+		native.Service_cidr = tf.Service_cidr.ValueString()
+	}
+	if !tf.Host_prefix.IsNull() && !tf.Host_prefix.IsUnknown() {
+		native.Host_prefix = tf.Host_prefix.ValueInt64()
+	}
 	if !tf.Api_url.IsNull() && !tf.Api_url.IsUnknown() {
 		native.Api_url = tf.Api_url.ValueString()
 	}
@@ -1247,8 +1288,8 @@ func nativeClusterToTerraform(native *ClusterStateNative) (*ClusterState, diag.D
 	tf.UnneededDurationSeconds = toTerraformInt64Ptr(normalizeOptionalInt32ToInt64(native.UnneededDurationSeconds))
 	tf.UtilizationThresholdPercent = toTerraformInt64Ptr(normalizeOptionalInt32ToInt64(native.UtilizationThresholdPercent))
 	tf.Scaling = toTerraformString(native.Scaling)
-	tf.Disabled = toTerraformList(native.Disabled)
-	tf.Enabled = toTerraformList(native.Enabled)
+	tf.Disabled_capabilities = toTerraformString(native.Disabled_capabilities)
+	tf.Enabled_capabilities = toTerraformString(native.Enabled_capabilities)
 	tf.Channel = toTerraformString(native.Channel)
 	tf.OidcProviders = toTerraformString(native.OidcProviders)
 	tf.AuthenticationType = toTerraformString(native.AuthenticationType)
@@ -1298,6 +1339,10 @@ func nativeClusterToTerraform(native *ClusterStateNative) (*ClusterState, diag.D
 	tf.Operator_roles_prefix = toTerraformString(native.Operator_roles_prefix)
 	tf.Cloud_region = toTerraformString(native.Cloud_region)
 	tf.No_cni = toTerraformBool(native.No_cni)
+	tf.Machine_cidr = toTerraformString(native.Machine_cidr)
+	tf.Pod_cidr = toTerraformString(native.Pod_cidr)
+	tf.Service_cidr = toTerraformString(native.Service_cidr)
+	tf.Host_prefix = toTerraformInt64(native.Host_prefix)
 	tf.Api_url = toTerraformString(native.Api_url)
 	tf.Phase = toTerraformString(native.Phase)
 	{

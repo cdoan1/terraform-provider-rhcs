@@ -5,6 +5,7 @@ package clusterworkflow
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -451,6 +452,31 @@ func newSeaplaneBackend(profile profilehandler.ProfileHandler, workspace string)
 	if componentRoutes != "" {
 		componentRoutesValue = &componentRoutes
 	}
+	optionalString := func(value string) *string {
+		if value == "" {
+			return nil
+		}
+		return &value
+	}
+	optionalInt64 := func(value int64) *int64 {
+		if value == 0 {
+			return nil
+		}
+		return &value
+	}
+	// Capabilities are JSON-encoded lists (matching the cluster manifest
+	// variables); an empty profile list leaves the attribute unset.
+	jsonList := func(values []string) *string {
+		if len(values) == 0 {
+			return nil
+		}
+		encoded, err := json.Marshal(values)
+		if err != nil {
+			return nil
+		}
+		encodedStr := string(encoded)
+		return &encodedStr
+	}
 	clusterArgs := &exec.SeaplaneClusterArgs{
 		SeaplaneURL:                    &seaplaneURL,
 		ReleaseImage:                   &releaseImage,
@@ -467,6 +493,12 @@ func newSeaplaneBackend(profile profilehandler.ProfileHandler, workspace string)
 		AutoscalerMaxPodGracePeriod:    maxGrace,
 		AutoscalerPodPriorityThreshold: podPriority,
 		ComponentRoutes:                componentRoutesValue,
+		EnabledCapabilities:            jsonList(profile.Profile().GetEnableClusterCapabilities()),
+		DisabledCapabilities:           jsonList(profile.Profile().GetDisableClusterCapabilities()),
+		MachineCIDR:                    optionalString(profile.Profile().GetMachineCIDR()),
+		PodCIDR:                        optionalString(profile.Profile().GetPodCIDR()),
+		ServiceCIDR:                    optionalString(profile.Profile().GetServiceCIDR()),
+		HostPrefix:                     optionalInt64(int64(profile.Profile().GetHostPrefix())),
 	}
 	// Customer AWS tags are applied at provisioning time only, so they can only
 	// be set on create.

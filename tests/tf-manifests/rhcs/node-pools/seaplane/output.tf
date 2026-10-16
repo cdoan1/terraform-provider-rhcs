@@ -24,3 +24,7 @@ output "nodepool_min_replicas" {
 output "nodepool_max_replicas" {
   value = rhcs_nodepool_seaplane.nodepool.autoscaling == null ? null : rhcs_nodepool_seaplane.nodepool.autoscaling.max_replicas
 }
+
+output "nodepool_tags" {
+  value = rhcs_nodepool_seaplane.nodepool.tags
+}

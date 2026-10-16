@@ -26,6 +26,17 @@ type SeaplaneClusterArgs struct {
 	AutoscalerMaxPodGracePeriod    *int64  `hcl:"autoscaler_max_pod_grace_period"`
 	AutoscalerPodPriorityThreshold *int64  `hcl:"autoscaler_pod_priority_threshold"`
 	ComponentRoutes                *string `hcl:"component_routes"`
+	// EnabledCapabilities / DisabledCapabilities are JSON-encoded lists of
+	// HyperShift capabilities set at cluster creation (e.g. ImageRegistry).
+	// Immutable.
+	EnabledCapabilities  *string `hcl:"enabled_capabilities"`
+	DisabledCapabilities *string `hcl:"disabled_capabilities"`
+	// MachineCIDR / PodCIDR / ServiceCIDR / HostPrefix are the cluster network
+	// CIDRs set at creation. Immutable.
+	MachineCIDR *string `hcl:"machine_cidr"`
+	PodCIDR     *string `hcl:"pod_cidr"`
+	ServiceCIDR *string `hcl:"service_cidr"`
+	HostPrefix  *int64  `hcl:"host_prefix"`
 	// Tags are customer AWS tags applied to the AWS resources created for the
 	// cluster. Immutable once the cluster exists.
 	Tags       *map[string]string `hcl:"tags"`
@@ -47,6 +58,12 @@ type SeaplaneClusterOutput struct {
 	AutoscalerMaxPodGracePeriod    int64  `json:"autoscaler_max_pod_grace_period,omitempty"`
 	AutoscalerPodPriorityThreshold int64  `json:"autoscaler_pod_priority_threshold,omitempty"`
 	ComponentRoutes                string `json:"component_routes,omitempty"`
+	EnabledCapabilities            string `json:"cluster_enabled_capabilities,omitempty"`
+	DisabledCapabilities           string `json:"cluster_disabled_capabilities,omitempty"`
+	MachineCIDR                    string `json:"cluster_machine_cidr,omitempty"`
+	PodCIDR                        string `json:"cluster_pod_cidr,omitempty"`
+	ServiceCIDR                    string `json:"cluster_service_cidr,omitempty"`
+	HostPrefix                     *int64 `json:"cluster_host_prefix,omitempty"`
 }
 
 // SeaplaneClusterService manages the lifecycle of an rhcs_cluster_seaplane

@@ -296,6 +296,11 @@ func (r *NodePoolResource) Schema(
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"tags": schema.MapAttribute{
+				MarkdownDescription: "Tags.",
+				Optional:            true,
+				ElementType:         types.StringType,
+			},
 			"phase": schema.StringAttribute{
 				MarkdownDescription: "Phase.",
 				Computed:            true,
@@ -767,6 +772,11 @@ func terraformNodePoolToNative(tf *NodePoolState) (*NodePoolStateNative, diag.Di
 	if !tf.Cluster_id.IsNull() && !tf.Cluster_id.IsUnknown() {
 		native.Cluster_id = tf.Cluster_id.ValueString()
 	}
+	if !tf.Tags.IsNull() && !tf.Tags.IsUnknown() {
+		values, collectionDiags := terraformMapToStringMap(tf.Tags)
+		diags = append(diags, collectionDiags...)
+		native.Tags = values
+	}
 	if !tf.Phase.IsNull() && !tf.Phase.IsUnknown() {
 		native.Phase = tf.Phase.ValueString()
 	}
@@ -847,6 +857,7 @@ func nativeNodePoolToTerraform(native *NodePoolStateNative) (*NodePoolState, dia
 		diags = append(diags, collectionDiags...)
 	}
 	tf.Cluster_id = toTerraformString(native.Cluster_id)
+	tf.Tags = toTerraformMap(native.Tags)
 	tf.Phase = toTerraformString(native.Phase)
 	{
 		bundleAttrs := nativeBundleAttributes(native.Autoscaling, map[string]string{

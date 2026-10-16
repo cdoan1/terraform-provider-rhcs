@@ -18,12 +18,12 @@ Manages OidcConfig resources.
 ### Required
 
 - `name` (String) Name.
-- `type` (String) Type.
 
 ### Optional
 
 - `installer_role_arn` (String) InstallerRoleArn.
 - `secret_arn` (String) SecretArn.
+- `type` (String) Type.
 
 ### Read-Only
 

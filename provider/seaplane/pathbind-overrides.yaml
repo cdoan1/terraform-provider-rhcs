@@ -110,6 +110,44 @@ resources:
         alias: autoscalerPodPriorityThreshold
         type: "*int32"
         description: "Pod priority threshold for cluster autoscaler scale-up."
+      - path: spec.hostedCluster.capabilities.enabled
+        alias: enabled_capabilities
+        type: string
+        immutable: true
+        operations:
+          - create
+        description: "JSON-encoded list of cluster capabilities explicitly enabled at install time (for example [\"ImageRegistry\", \"Console\"]). Capabilities can only be set at cluster creation; changing them replaces the cluster."
+      - path: spec.hostedCluster.capabilities.disabled
+        alias: disabled_capabilities
+        type: string
+        immutable: true
+        operations:
+          - create
+        description: "JSON-encoded list of cluster capabilities explicitly disabled at install time (for example [\"ImageRegistry\"] to disable the in-cluster image registry). Capabilities can only be set at cluster creation; changing them replaces the cluster."
+      - alias: machine_cidr
+        type: string
+        immutable: true
+        operations:
+          - create
+        description: "IP address pool for machines (e.g. 10.0.0.0/16). With a byovpc VPC this must contain the VPC CIDR. Only one entry is supported. Immutable after creation; changing it replaces the cluster. Mutually exclusive with network.machine_cidr."
+      - alias: pod_cidr
+        type: string
+        immutable: true
+        operations:
+          - create
+        description: "IP address pool for pods (e.g. 10.128.0.0/14). Only one entry is supported. Immutable after creation; changing it replaces the cluster. Mutually exclusive with network.pod_cidr."
+      - alias: service_cidr
+        type: string
+        immutable: true
+        operations:
+          - create
+        description: "IP address pool for services (e.g. 172.31.0.0/16). Only one entry is supported. Immutable after creation; changing it replaces the cluster. Mutually exclusive with network.service_cidr."
+      - alias: host_prefix
+        type: int64
+        immutable: true
+        operations:
+          - create
+        description: "Prefix size allocated to each node from the pod CIDR (e.g. 23 grants 2^(32-23)=512 addresses per node). If unset the platform default (23) applies. Requires pod_cidr. Immutable after creation; changing it replaces the cluster."
       - path: spec.hostedCluster.configuration.authentication.oidcProviders
         alias: oidc_providers
         goName: OidcProviders
@@ -315,6 +353,13 @@ resources:
         operations:
           - create
         description: "UID of the parent cluster; validated against cluster_name."
+
+      - alias: tags
+        type: map
+        operations:
+          - create
+          - update
+        description: "Customer AWS resource tags applied to the EC2 instances and initial EBS volumes created for this node pool. A maximum of 25 tags is supported. Tag keys starting with 'aws:' or 'red-hat' are reserved for platform use. Omit this attribute to leave resource tags unmanaged; set it to an empty map to clear all user tags. Updating the map replaces the full tag set."
 
       - alias: phase
         type: string

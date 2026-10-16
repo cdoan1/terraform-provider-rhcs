@@ -4,19 +4,26 @@
 package profilehandler
 
 type Profile struct {
-	Name                           string   `ini:"name,omitempty" json:"name,omitempty"`
-	ClusterName                    string   `ini:"cluster_name,omitempty" json:"cluster_name,omitempty"`
-	DomainPrefix                   string   `ini:"domain_prefix,omitempty" json:"domain_prefix,omitempty"`
-	ClusterType                    string   `ini:"cluster_type,omitempty" json:"cluster_type,omitempty"`
-	ProductID                      string   `ini:"product_id,omitempty" json:"product_id,omitempty"`
-	MajorVersion                   string   `ini:"major_version,omitempty" json:"major_version,omitempty"` // Specify the Major or Major.minor version to use. Default will use latest
-	Version                        string   `ini:"version,omitempty" json:"version,omitempty"`             // Version supports specific OCP version or indicated version starting with openshift-v or latest or major-1 (y-1) or minor-1 (z-1). Default is latest.
-	ChannelGroup                   string   `ini:"channel_group,omitempty" json:"channel_group,omitempty"`
-	CloudProvider                  string   `ini:"cloud_provider,omitempty" json:"cloud_provider,omitempty"`
-	Region                         string   `ini:"region,omitempty" json:"region,omitempty"`
-	InstanceType                   string   `ini:"instance_type,omitempty" json:"instance_type,omitempty"`
-	Zones                          string   `ini:"zones,omitempty" json:"zones,omitempty"`           // zones should be like a,b,c,d
-	StorageLB                      bool     `ini:"storage_lb,omitempty" json:"storage_lb,omitempty"` // the unit is GIB, don't support unit set
+	Name         string `ini:"name,omitempty" json:"name,omitempty"`
+	ClusterName  string `ini:"cluster_name,omitempty" json:"cluster_name,omitempty"`
+	DomainPrefix string `ini:"domain_prefix,omitempty" json:"domain_prefix,omitempty"`
+	ClusterType  string `ini:"cluster_type,omitempty" json:"cluster_type,omitempty"`
+	ProductID    string `ini:"product_id,omitempty" json:"product_id,omitempty"`
+	// MajorVersion specifies the Major or Major.minor version to use.
+	// Default will use latest.
+	MajorVersion string `json:"major_version,omitempty"`
+	// Version supports specific OCP version or indicated version starting
+	// with openshift-v or latest or major-1 (y-1) or minor-1 (z-1).
+	// Default is latest.
+	Version       string `json:"version,omitempty"`
+	ChannelGroup  string `ini:"channel_group,omitempty" json:"channel_group,omitempty"`
+	CloudProvider string `ini:"cloud_provider,omitempty" json:"cloud_provider,omitempty"`
+	Region        string `ini:"region,omitempty" json:"region,omitempty"`
+	InstanceType  string `ini:"instance_type,omitempty" json:"instance_type,omitempty"`
+	// Zones should be like a,b,c,d
+	Zones string `json:"zones,omitempty"`
+	// StorageLB is in GiB; the unit cannot be set.
+	StorageLB                      bool     `json:"storage_lb,omitempty"`
 	Tagging                        bool     `ini:"tagging,omitempty" json:"tagging,omitempty"`
 	Labeling                       bool     `ini:"labeling,omitempty" json:"labeling,omitempty"`
 	Etcd                           bool     `ini:"etcd_encryption,omitempty" json:"etcd_encryption,omitempty"`
@@ -33,18 +40,18 @@ type Profile struct {
 	Private                        bool     `ini:"private,omitempty" json:"private,omitempty"`
 	BYOK                           bool     `ini:"byok,omitempty" json:"byok,omitempty"`
 	KMSKey                         bool     `ini:"kms_key_arn,omitempty" json:"kms_key_arn,omitempty"`
-	DifferentEncryptionKeys        bool     `ini:"different_encryption_keys,omitempty" json:"different_encryption_keys,omitempty"`
+	DifferentEncryptionKeys        bool     `json:"different_encryption_keys,omitempty"`
 	NetWorkingSet                  bool     `ini:"networking_set,omitempty" json:"networking_set,omitempty"`
 	Proxy                          bool     `ini:"proxy,omitempty" json:"proxy,omitempty"`
 	OIDCConfig                     string   `ini:"oidc_config,omitempty" json:"oidc_config,omitempty"`
 	SchedulerProfile               string   `ini:"scheduler_profile,omitempty" json:"scheduler_profile,omitempty"`
-	AutoscalerMaxNodeProvisionTime string   `ini:"autoscaler_max_node_provision_time,omitempty" json:"autoscaler_max_node_provision_time,omitempty"`
-	AutoscalerMaxNodesTotal        int64    `ini:"autoscaler_max_nodes_total,omitempty" json:"autoscaler_max_nodes_total,omitempty"`
-	AutoscalerMaxPodGracePeriod    int64    `ini:"autoscaler_max_pod_grace_period,omitempty" json:"autoscaler_max_pod_grace_period,omitempty"`
-	AutoscalerPodPriorityThreshold int64    `ini:"autoscaler_pod_priority_threshold,omitempty" json:"autoscaler_pod_priority_threshold,omitempty"`
+	AutoscalerMaxNodeProvisionTime string   `json:"autoscaler_max_node_provision_time,omitempty"`
+	AutoscalerMaxNodesTotal        int64    `json:"autoscaler_max_nodes_total,omitempty"`
+	AutoscalerMaxPodGracePeriod    int64    `json:"autoscaler_max_pod_grace_period,omitempty"`
+	AutoscalerPodPriorityThreshold int64    `json:"autoscaler_pod_priority_threshold,omitempty"`
 	ComponentRoutes                string   `ini:"component_routes,omitempty" json:"component_routes,omitempty"`
 	ProvisionShard                 string   `ini:"provisionShard,omitempty" json:"provisionShard,omitempty"`
-	Ec2MetadataHttpTokens          string   `ini:"ec2_metadata_http_tokens,omitempty" json:"ec2_metadata_http_tokens,omitempty"`
+	Ec2MetadataHttpTokens          string   `json:"ec2_metadata_http_tokens,omitempty"`
 	ComputeReplicas                int      `ini:"compute_replicas,omitempty" json:"compute_replicas,omitempty"`
 	ComputeMachineType             string   `ini:"compute_machine_type,omitempty" json:"compute_machine_type,omitempty"`
 	AuditLogForward                bool     `ini:"auditlog_forward,omitempty" json:"auditlog_forward,omitempty"`
@@ -54,6 +61,8 @@ type Profile struct {
 	AdditionalSGNumber             int      `ini:"additional_sg_number,omitempty" json:"additional_sg_number,omitempty"`
 	UnifiedAccRolesPath            string   `ini:"unified_acc_role_path,omitempty" json:"unified_acc_role_path,omitempty"`
 	SharedVpc                      bool     `ini:"shared_vpc,omitempty" json:"shared_vpc,omitempty"`
+	DisableClusterCapabilities     []string `json:"disable_cluster_capabilities,omitempty"`
+	EnableClusterCapabilities      []string `json:"enable_cluster_capabilities,omitempty"`
 	MachineCIDR                    string   `ini:"machine_cidr,omitempty" json:"machine_cidr,omitempty"`
 	ServiceCIDR                    string   `ini:"service_cidr,omitempty" json:"service_cidr,omitempty"`
 	PodCIDR                        string   `ini:"pod_cidr,omitempty" json:"pod_cidr,omitempty"`

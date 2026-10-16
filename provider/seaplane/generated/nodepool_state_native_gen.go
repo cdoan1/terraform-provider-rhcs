@@ -40,6 +40,7 @@ type NodePoolStateNative struct {
 	Taints                        string            `hfsdk:"spec.nodePool.taints"`
 	Tuning_config                 string            `hfsdk:"spec.nodePool.tuningConfig"`
 	Cluster_id                    string            `hfsdk:"-"`
+	Tags                          map[string]string `hfsdk:"-"`
 	Phase                         string            `hfsdk:"-"`
 	Autoscaling                   NodePoolAutoscalingNative
 }

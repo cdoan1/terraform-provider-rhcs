@@ -93,6 +93,8 @@ type ProfileSpec interface {
 	GetAutoscalerMaxPodGracePeriod() int64
 	GetAutoscalerPodPriorityThreshold() int64
 	GetComponentRoutes() string
+	GetDisableClusterCapabilities() []string
+	GetEnableClusterCapabilities() []string
 	GetAdditionalSGNumber() int
 	GetComputeReplicas() int
 	GetWorkerDiskSize() int
@@ -235,6 +237,14 @@ func (ctx *profileContext) GetAutoscalerPodPriorityThreshold() int64 {
 	return ctx.profile.AutoscalerPodPriorityThreshold
 }
 func (ctx *profileContext) GetComponentRoutes() string { return ctx.profile.ComponentRoutes }
+
+func (ctx *profileContext) GetDisableClusterCapabilities() []string {
+	return ctx.profile.DisableClusterCapabilities
+}
+
+func (ctx *profileContext) GetEnableClusterCapabilities() []string {
+	return ctx.profile.EnableClusterCapabilities
+}
 
 func (ctx *profileContext) GetAdditionalSGNumber() int {
 	return ctx.profile.AdditionalSGNumber

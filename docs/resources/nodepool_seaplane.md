@@ -18,8 +18,6 @@ Manages NodePool resources.
 ### Required
 
 - `cluster_id` (String) Cluster_id.
-- `cluster_name` (String) ClusterName.
-- `name` (String) Name.
 
 ### Optional
 
@@ -29,6 +27,7 @@ Manages NodePool resources.
 - `autoscaling` (Attributes) (see [below for nested schema](#nestedatt--autoscaling))
 - `capacity_reservation_id` (String) CapacityReservationId.
 - `capacity_reservation_market_type` (String) CapacityReservationMarketType.
+- `cluster_name` (String) ClusterName.
 - `config` (Attributes List) ConfigMap references containing serialized nodepool configuration. (see [below for nested schema](#nestedatt--config))
 - `ec2_instance_metadata_http_tokens` (String) EC2InstanceMetadataHttpTokens.
 - `filters` (String) Filters.
@@ -40,6 +39,7 @@ Manages NodePool resources.
 - `max_price` (String) MaxPrice.
 - `max_surge` (String) MaxSurge.
 - `max_unavailable` (String) MaxUnavailable.
+- `name` (String) Name.
 - `node_drain_timeout` (String) NodeDrainTimeout.
 - `node_labels` (Map of String) NodeLabels.
 - `placement_market_type` (String) PlacementMarketType.
@@ -48,6 +48,7 @@ Manages NodePool resources.
 - `resource_tags` (String) ResourceTags.
 - `size` (Number) Size.
 - `subnet_id` (String) SubnetId.
+- `tags` (Map of String) Tags.
 - `taints` (Attributes List) Node taints applied to nodes in this pool. (see [below for nested schema](#nestedatt--taints))
 - `tenancy` (String) Tenancy.
 - `tuning_config` (Attributes List) ConfigMap references containing tuning configuration. (see [below for nested schema](#nestedatt--tuning_config))

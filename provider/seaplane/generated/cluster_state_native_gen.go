@@ -30,8 +30,8 @@ type ClusterStateNative struct {
 	UnneededDurationSeconds        *int32            `hfsdk:"spec.hostedCluster.autoscaling.scaleDown.unneededDurationSeconds"`
 	UtilizationThresholdPercent    *int32            `hfsdk:"spec.hostedCluster.autoscaling.scaleDown.utilizationThresholdPercent"`
 	Scaling                        string            `hfsdk:"spec.hostedCluster.autoscaling.scaling"`
-	Disabled                       []string          `hfsdk:"spec.hostedCluster.capabilities.disabled"`
-	Enabled                        []string          `hfsdk:"spec.hostedCluster.capabilities.enabled"`
+	Disabled_capabilities          string            `hfsdk:"spec.hostedCluster.capabilities.disabled"`
+	Enabled_capabilities           string            `hfsdk:"spec.hostedCluster.capabilities.enabled"`
 	Channel                        string            `hfsdk:"spec.hostedCluster.channel"`
 	OidcProviders                  string            `hfsdk:"spec.hostedCluster.configuration.authentication.oidcProviders"`
 	AuthenticationType             string            `hfsdk:"spec.hostedCluster.configuration.authentication.type"`
@@ -81,6 +81,10 @@ type ClusterStateNative struct {
 	Operator_roles_prefix          string            `hfsdk:"-"`
 	Cloud_region                   string            `hfsdk:"-"`
 	No_cni                         bool              `hfsdk:"-"`
+	Machine_cidr                   string            `hfsdk:"-"`
+	Pod_cidr                       string            `hfsdk:"-"`
+	Service_cidr                   string            `hfsdk:"-"`
+	Host_prefix                    int64             `hfsdk:"-"`
 	Api_url                        string            `hfsdk:"-"`
 	Phase                          string            `hfsdk:"-"`
 	Network                        ClusterNetworkNative
