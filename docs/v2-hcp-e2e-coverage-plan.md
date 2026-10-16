@@ -12,7 +12,7 @@
 |------|----------|------|-----------|-----|--------|
 | ROSAENG-65173 node pool tags | ✅ `tags` map + validation + encode/flatten in `nodepool_handler.go` | ✅ | ✅ 5 specs (create/update/round-trip/negatives) | ✅ `nodepool_tags_test.go` (gated on `tagging: true` profile) | **Code complete — pending e2e run** |
 | ROSAENG-65204 GPU machine pools | n/a (no provider change needed) | n/a | n/a | ✅ `nodepool_gpu_test.go` (opt-in via `SEAPLANE_NODEPOOL_GPU_INSTANCE_TYPE`) | **Code complete — pending e2e run** |
-| ROSAENG-65243 capabilities | ✅ `enabled/disabled_capabilities` JSON-string attributes (pathbind passthrough — note: SDK stores `[]OptionalCapability`, a named type pathbind cannot convert from `[]string`, so the repo's JSON-string convention for arrays applies, same as `componentRoutes`/`resource_tags`) + whitelist/overlap validation | ✅ (via subsystem) | ✅ 4 specs (create body, replacement plan, invalid capability, enabled+disabled overlap) | ✅ `cluster_capabilities_test.go` + profile `seaplane-disable-capabilities` | **Code complete — pending e2e run** |
+| ROSAENG-65243 capabilities | ✅ `enabled/disabled_capabilities` JSON-string attributes (pathbind passthrough — note: SDK stores `[]OptionalCapability`, a named type pathbind cannot convert from `[]string`, so the repo's JSON-string convention for arrays applies, same as `componentRoutes`/`resource_tags`) + whitelist/overlap validation | ✅ (via subsystem) | ✅ 4 specs (create body, replacement plan, invalid capability, enabled+disabled overlap) | ✅ `cluster_capabilities_test.go` + profile `seaplane-disable-caps` | **Code complete — pending e2e run** |
 | ROSAENG-65120 network CIDRs | ✅ top-level `machine_cidr`/`pod_cidr`/`service_cidr` (plain CIDR strings) + `host_prefix` (V1 parity), consumer-only with handler encoding into the networking arrays; validation: CIDR parse, pairwise overlaps (V1 38857 wording parity), host-prefix and pod-prefix, mutual exclusion with the raw `network` bundle | ✅ (via subsystem) | ✅ 7 specs (create body, drift-free round-trip, replacement plan, invalid CIDR, overlap, host-prefix rules, bundle conflict) | ✅ `cluster_networking_test.go` + profile `seaplane-custom-cidrs` | **Code complete — pending e2e run** |
 
 Additional fixes landed along the way:
@@ -24,7 +24,7 @@ All 35 seaplane subsystem specs and provider unit tests pass locally, and `make 
 - The seaplane schema descriptions in the generated docs are terse (e.g. `Machine_cidr.`) — the upstream pathbind-gen TF template hardcodes `{{.GoName}}.` and only surfaces override descriptions for list(object) element attributes. The rich descriptions live in `pathbind-overrides.yaml`; surfacing them in the schema needs an upstream pathbind-gen change (follow-up).
 - `make docs-lint` (vale) fails locally only because it scans the gitignored `vendor/` directory plus one pre-existing `.vale.ini` self-flag; CI containers do not vendor and the non-vendor errors (3 `vs` wording hits in `developer-docs/seaplane.md`) were fixed along the way.
 
-E2E still requires the real V2 environment: `SEAPLANE_URL`, `SEAPLANE_RELEASE_IMAGE`, `CLUSTER_PROFILE` (e.g. `seaplane-disable-capabilities` or a `tagging: true` profile), and AWS credentials.
+E2E still requires the real V2 environment: `SEAPLANE_URL`, `SEAPLANE_RELEASE_IMAGE`, `CLUSTER_PROFILE` (e.g. `seaplane-basic` for the tags test; the capabilities and CIDR specs pin their own profiles), and AWS credentials.
 
 ---
 
@@ -153,7 +153,7 @@ No provider change required — `instance_type` already passes through and V2 do
 - Regenerate; docs/examples.
 
 **E2E** — new `tests/e2e/seaplane/cluster_capabilities_test.go`, mirroring rosa CLI ROSAENG-68175 (profile-gated full-lifecycle style):
-1. New profile `seaplane-disable-capabilities` with `disable_cluster_capabilities: "ImageRegistry"`.
+1. Profile `seaplane-disable-caps` (pinned by the spec) with `disable_cluster_capabilities: ["ImageRegistry"]`.
 2. Create cluster via `clusterworkflow` backend; assert TF output echoes the setting.
 3. Verify via Platform API: `cluster.Spec.HostedCluster.Capabilities.Disabled` contains `ImageRegistry` and `Enabled` is empty/absent.
 4. Verify cluster reaches `Ready` with the capability disabled.
@@ -199,7 +199,7 @@ No provider change required — `instance_type` already passes through and V2 do
 
 | Piece | Changes |
 |-------|---------|
-| `tests/ci/profiles/tf_seaplane_cluster_profiles.yml` | New profiles: `seaplane-nodepool-tags` (or reuse `tagging: true`), `seaplane-gpu-machine-pool`, `seaplane-disable-capabilities`, `seaplane-custom-cidrs` |
+| `tests/ci/profiles/tf_seaplane_cluster_profiles.yml` | New profiles: `seaplane-nodepool-tags` (or reuse `tagging: true`), `seaplane-disable-caps`, `seaplane-custom-cidrs` |
 | `tests/e2e/seaplane/` | New files: `nodepool_tags_test.go`, `nodepool_gpu_test.go`, `cluster_capabilities_test.go`, `cluster_networking_test.go` |
 | `tests/utils/exec/seaplane_cluster.go` | Add `EnabledCapabilities`, `DisabledCapabilities`, `MachineCIDR`, `ServiceCIDR`, `PodCIDR`, `HostPrefix` (+ outputs) |
 | `tests/utils/exec/seaplane_nodepool.go` | Fix `Tags` to `*map[string]string`; add tags output |

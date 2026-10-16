@@ -141,6 +141,21 @@ func NewProfileHandlerFromYamlFile() (handler ProfileHandler, err error) {
 	return
 }
 
+// NewProfileHandlerByName loads a profile by name from the profiles directory
+// without consulting the CLUSTER_PROFILE environment variable. Feature specs
+// that require a specific profile pin it explicitly instead of skipping when
+// the ambient profile does not enable the feature, so a single suite run can
+// exercise specs with different profile requirements. Unlike setting
+// CLUSTER_PROFILE in a BeforeEach, it does not leak state to later specs.
+func NewProfileHandlerByName(profileName string) (handler ProfileHandler, err error) {
+	profile, err := loadProfileYamlFile(profileName)
+	if err != nil {
+		return
+	}
+	handler = newProfileHandler(profile, profile.Name)
+	return
+}
+
 func NewRandomProfileHandler(clusterTypes ...constants.ClusterType) (handler ProfileHandler, err error) {
 	profile, err := getRandomProfile(clusterTypes...)
 	if err != nil {

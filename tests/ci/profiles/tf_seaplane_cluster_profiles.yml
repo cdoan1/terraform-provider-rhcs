@@ -95,7 +95,7 @@ profiles:
     worker_disk_size: 75
     additional_sg_number: 3
 
-- as: seaplane-disable-capabilities
+- as: seaplane-disable-caps
   cluster:
     cluster_type: seaplane
     product_id: rosa

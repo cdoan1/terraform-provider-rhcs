@@ -32,17 +32,26 @@ import (
 // registry pod health. In the ephemeral environment the registry is
 // enabled-by-default but not backed by storage (image-registry CO Degraded
 // with StorageExists=False), which is out of scope here.
-var _ = Describe("Seaplane cluster capabilities", ci.SeaplaneValidated, func() {
+var _ = Describe("Seaplane cluster capabilities id:ROSAENG-65243", ci.Day1, ci.SeaplaneValidated, func() {
+	// requiredProfile is pinned by this spec instead of being selected through
+	// the CLUSTER_PROFILE environment variable, so the spec is self-sufficient:
+	// it runs with its required configuration regardless of the ambient profile
+	// of the suite run. The name must stay within the 18-character Seaplane
+	// cluster-name limit because clusterworkflow defaults the cluster name to
+	// the profile name.
+	const requiredProfile = "seaplane-disable-caps"
+
 	It("creates a cluster with the ImageRegistry capability disabled", func(ctx SpecContext) {
-		profileHandler, err := profilehandler.NewProfileHandlerFromYamlFile()
+		profileHandler, err := profilehandler.NewProfileHandlerByName(requiredProfile)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(profileHandler.Profile().GetClusterType()).To(Equal(constants.SEAPLANE))
 		disabled := profileHandler.Profile().GetDisableClusterCapabilities()
-		if len(disabled) == 0 {
-			Skip("Test requires a Seaplane profile with disable_cluster_capabilities")
-		}
+		// The profile is checked into the repo; a missing field is a config bug,
+		// not a reason to skip.
+		Expect(disabled).NotTo(BeEmpty(),
+			"profile %s must define disable_cluster_capabilities", requiredProfile)
 
-		workspace := seaplaneTestWorkspace(profileHandler.Profile().GetName(), "disable-capabilities")
+		workspace := seaplaneTestWorkspace(requiredProfile, "e2e")
 		backend, err := clusterworkflow.New(profileHandler, "", workspace)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -70,7 +79,14 @@ var _ = Describe("Seaplane cluster capabilities", ci.SeaplaneValidated, func() {
 		By("Verifying the disabled capabilities through the Platform API")
 		seaplaneURL := os.Getenv("SEAPLANE_URL")
 		Expect(seaplaneURL).NotTo(BeEmpty())
-		cluster, err := mustBuildSeaplaneClient(seaplaneURL, profileHandler.Profile().GetRegion()).
+		// Prefer the region derived from the Platform API URL so the spec works
+		// against any regional endpoint; the pinned profile region is the
+		// fallback.
+		region := awsRegionRE.FindString(seaplaneURL)
+		if region == "" {
+			region = profileHandler.Profile().GetRegion()
+		}
+		cluster, err := mustBuildSeaplaneClient(seaplaneURL, region).
 			SeaplaneV1alpha1().Clusters().Get(ctx, clusterID, spplatform.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
