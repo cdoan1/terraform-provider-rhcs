@@ -19,6 +19,7 @@ import (
 	spplatform "github.com/openshift-online/rosa-seaplane-api/clientset/platform"
 	sprest "github.com/openshift-online/rosa-seaplane-api/clientset/rest"
 
+	"github.com/terraform-redhat/terraform-provider-rhcs/tests/ci"
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/clusterworkflow"
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/config"
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/exec"
@@ -47,7 +48,7 @@ const (
 
 var awsRegionRE = regexp.MustCompile(`[a-z]+-(?:[a-z]+-)+\d+`)
 
-var _ = Describe("Seaplane sanity", func() {
+var _ = Describe("Seaplane sanity", ci.Day1, ci.SeaplaneValidated, func() {
 	It("creates and destroys a Seaplane cluster end-to-end", func() {
 		seaplaneURL := requireEnv("SEAPLANE_URL")
 		releaseImage := requireEnv(config.EnvSeaplaneReleaseImage)

@@ -28,7 +28,7 @@ import (
 // assertions. Constraints: with the byovpc flow machine_cidr must contain the
 // VPC CIDR (SEAPLANE_VPC_CIDR, default 10.0.0.0/16), and the pod/service
 // CIDRs must not overlap it or each other.
-var _ = Describe("Seaplane cluster network CIDRs", ci.SeaplaneValidated, func() {
+var _ = Describe("Seaplane cluster network CIDRs", ci.Day1, ci.SeaplaneValidated, func() {
 	It("creates a cluster with custom machine, pod, and service CIDRs", func(ctx SpecContext) {
 		profileHandler, err := profilehandler.NewProfileHandlerFromYamlFile()
 		Expect(err).NotTo(HaveOccurred())

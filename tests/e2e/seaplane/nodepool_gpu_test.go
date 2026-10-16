@@ -31,7 +31,7 @@ import (
 // The test is opt-in because GPU instances are expensive and quota-limited:
 // set SEAPLANE_NODEPOOL_GPU_INSTANCE_TYPE (default suggestion: g5.xlarge)
 // to run it.
-var _ = Describe("Seaplane GPU machine pools", ci.SeaplaneValidated, func() {
+var _ = Describe("Seaplane GPU machine pools", ci.Day2, ci.SeaplaneValidated, func() {
 	It("creates a nodepool with a GPU instance type", func(ctx SpecContext) {
 		gpuInstanceType := os.Getenv("SEAPLANE_NODEPOOL_GPU_INSTANCE_TYPE")
 		if gpuInstanceType == "" {

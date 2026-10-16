@@ -16,12 +16,13 @@ import (
 	v1alpha1 "github.com/openshift-online/rosa-seaplane-api/api/v1alpha1/public"
 	spplatform "github.com/openshift-online/rosa-seaplane-api/clientset/platform"
 
+	"github.com/terraform-redhat/terraform-provider-rhcs/tests/ci"
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/config"
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/constants"
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/exec"
 )
 
-var _ = Describe("Seaplane proxy", func() {
+var _ = Describe("Seaplane proxy", ci.Day2, ci.SeaplaneValidated, func() {
 	It("creates, updates, and clears proxy settings on a retained cluster", func(ctx SpecContext) {
 		seaplaneURL := requireEnv("SEAPLANE_URL")
 		// This spec follows the retained-cluster pattern: it updates proxy

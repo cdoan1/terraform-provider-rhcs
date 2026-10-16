@@ -169,9 +169,11 @@ Status legend: **Covered** (V2 spec exists) · **Partial** (some coverage, gaps 
 ## 4. Plan
 
 ### Phase 1 — mechanical unification (small, no behavior change)
-1. Label `sanity` and `proxy` specs with `ci.SeaplaneValidated` (proxy additionally with a phase label later).
-2. Add `--label-filter $(LabelFilter)` passthrough to `make e2e-seaplane`, mirroring `make e2e_test`.
-3. Add `terraform validate` over `tests/tf-manifests/**` to pre-push checks (the undeclared-variable incident was only caught mid-e2e).
+1. ~~Label `sanity` and `proxy` specs~~ **Done** — all specs now carry `ci.SeaplaneValidated` plus a phase label: `day1` (sanity, scheduler profile, autoscaler config, capabilities, network CIDRs), `day2` (autoscaler/component-routes updates, proxy, nodepool tags/autoscaling/GPU), `day1-negative` (tags validation).
+2. ~~Add `--label-filter $(LabelFilter)` passthrough to `make e2e-seaplane`~~ **Done** — `make e2e-seaplane LabelFilter="day1"` (an unset `LabelFilter` passes no flag, unlike `make e2e_test`).
+3. Add `terraform validate` over `tests/tf-manifests/**` to pre-push checks (the undeclared-variable incident was only caught mid-e2e). **Open.**
+
+Phase-label semantics: `day1` = cluster-creation-focused specs (each still creates its own cluster), `day2` = update/nodepool-focused specs, `day1-negative` = client-side validation (no cluster). Labels are additive down the ginkgo hierarchy, so validation-only specs live in their own `Describe` blocks to avoid inheriting phase labels.
 
 ### Phase 2 — shared-cluster phase model (structural)
 Adopt the V1 execution model for V2, keeping per-spec clusters only where create-time settings demand it:

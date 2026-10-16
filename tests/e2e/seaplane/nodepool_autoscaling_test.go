@@ -20,7 +20,7 @@ import (
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/profilehandler"
 )
 
-var _ = Describe("Seaplane NodePool autoscaling", ci.SeaplaneValidated, func() {
+var _ = Describe("Seaplane NodePool autoscaling", ci.Day2, ci.SeaplaneValidated, func() {
 	It("creates a nodepool with autoscaling and updates its min/max replicas", func(ctx SpecContext) {
 		profileHandler, err := profilehandler.NewProfileHandlerFromYamlFile()
 		Expect(err).NotTo(HaveOccurred())

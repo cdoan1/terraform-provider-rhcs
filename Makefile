@@ -332,6 +332,7 @@ e2e_test: $(GINKGO) install
 .PHONY: e2e-seaplane
 e2e-seaplane: $(GINKGO) install
 	$(GINKGO) run \
+		$(if $(LabelFilter),--label-filter $(LabelFilter),) \
 		--timeout 3h \
 		./tests/e2e/seaplane/... \
 		$(NULL)

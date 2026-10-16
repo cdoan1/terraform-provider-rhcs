@@ -25,7 +25,7 @@ import (
 // Platform API (spec.nodePool.platform.aws.resourceTags is applied in place),
 // while V1 HCP rejected tag edits ("Attribute aws_node_pool.tags, cannot be
 // changed from"). This test asserts the in-place update on purpose.
-var _ = Describe("Seaplane NodePool tags", ci.SeaplaneValidated, func() {
+var _ = Describe("Seaplane NodePool tags", ci.Day2, ci.SeaplaneValidated, func() {
 	It("creates a nodepool with tags and updates them in place", func(ctx SpecContext) {
 		profileHandler, err := profilehandler.NewProfileHandlerFromYamlFile()
 		Expect(err).NotTo(HaveOccurred())
@@ -145,8 +145,13 @@ var _ = Describe("Seaplane NodePool tags", ci.SeaplaneValidated, func() {
 		Expect(nodePoolTFOut.Tags).To(Equal(updatedTags))
 		Expect(nodePools.WaitUntil(ctx, nodePoolName, assertTags(updatedTags), pollInterval, nodepoolReadyTimeout)).To(Succeed())
 	})
+})
 
-	It("rejects invalid nodepool tags during validation", func(ctx SpecContext) {
+// Validation-only spec: the provider rejects invalid tags in PreExpand
+// before any Platform API call, so no cluster is needed. Follows the V1
+// day1-negative taxonomy.
+var _ = Describe("Seaplane NodePool tags validation", ci.Day1Negative, ci.SeaplaneValidated, func() {
+	It("rejects invalid nodepool tags during validation", ci.Day1Negative, func(ctx SpecContext) {
 		profileHandler, err := profilehandler.NewProfileHandlerFromYamlFile()
 		Expect(err).NotTo(HaveOccurred())
 		Expect(profileHandler.Profile().GetClusterType()).To(Equal(constants.SEAPLANE))

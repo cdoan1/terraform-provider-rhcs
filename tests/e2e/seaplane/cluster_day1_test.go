@@ -17,7 +17,7 @@ import (
 	"github.com/terraform-redhat/terraform-provider-rhcs/tests/utils/profilehandler"
 )
 
-var _ = Describe("Seaplane cluster configuration", ci.SeaplaneValidated, func() {
+var _ = Describe("Seaplane cluster configuration", ci.Day1, ci.SeaplaneValidated, func() {
 	It("creates a cluster with a scheduler profile", func(ctx SpecContext) {
 		profileHandler, err := profilehandler.NewProfileHandlerFromYamlFile()
 		Expect(err).NotTo(HaveOccurred())
