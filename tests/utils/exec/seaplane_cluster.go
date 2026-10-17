@@ -34,9 +34,12 @@ type SeaplaneClusterArgs struct {
 	// MachineCIDR / PodCIDR / ServiceCIDR / HostPrefix are the cluster network
 	// CIDRs set at creation. Immutable.
 	MachineCIDR *string `hcl:"machine_cidr"`
-	PodCIDR     *string `hcl:"pod_cidr"`
-	ServiceCIDR *string `hcl:"service_cidr"`
-	HostPrefix  *int64  `hcl:"host_prefix"`
+	// APIAllowedCIDRBlocks is the JSON-encoded allow list for the hosted API
+	// server load balancer (networking.apiServer.allowedCIDRBlocks).
+	APIAllowedCIDRBlocks *string `hcl:"api_allowed_cidr_blocks"`
+	PodCIDR              *string `hcl:"pod_cidr"`
+	ServiceCIDR          *string `hcl:"service_cidr"`
+	HostPrefix           *int64  `hcl:"host_prefix"`
 	// Tags are customer AWS tags applied to the AWS resources created for the
 	// cluster. Immutable once the cluster exists.
 	Tags       *map[string]string `hcl:"tags"`

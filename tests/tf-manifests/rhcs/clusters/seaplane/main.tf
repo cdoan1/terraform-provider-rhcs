@@ -35,13 +35,16 @@ resource "rhcs_cluster_seaplane" "cluster" {
     vpc_id             = var.vpc_id
     availability_zones = [var.availability_zone]
   }
-  expiration_timestamp               = var.expiration_timestamp
-  oidc_config_id                     = var.oidc_config_id != "" ? var.oidc_config_id : null
-  scheduler_profile                  = var.scheduler_profile
-  tags                               = var.tags
-  enabled_capabilities               = var.enabled_capabilities
-  disabled_capabilities              = var.disabled_capabilities
-  machine_cidr                       = var.machine_cidr
+  expiration_timestamp  = var.expiration_timestamp
+  oidc_config_id        = var.oidc_config_id != "" ? var.oidc_config_id : null
+  scheduler_profile     = var.scheduler_profile
+  tags                  = var.tags
+  enabled_capabilities  = var.enabled_capabilities
+  disabled_capabilities = var.disabled_capabilities
+  machine_cidr          = var.machine_cidr
+  network = {
+    api_allowed_cidr_blocks = var.api_allowed_cidr_blocks
+  }
   pod_cidr                           = var.pod_cidr
   service_cidr                       = var.service_cidr
   host_prefix                        = var.host_prefix

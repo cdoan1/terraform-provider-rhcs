@@ -310,6 +310,7 @@ func newSeaplaneBackend(profile profilehandler.ProfileHandler, workspace string)
 
 	var vpcID, subnetID, publicSubnetID, availabilityZone string
 	var vpcService exec.SeaplaneVPCService
+	vpcCIDR := envOrDefault("SEAPLANE_VPC_CIDR", "10.0.0.0/16")
 	subnetIDs := config.GetSubnetIDList()
 	availabilityZones := config.GetAvailabilityZoneList()
 	if len(availabilityZones) == 0 {
@@ -333,7 +334,6 @@ func newSeaplaneBackend(profile profilehandler.ProfileHandler, workspace string)
 		if err != nil {
 			return nil, err
 		}
-		vpcCIDR := envOrDefault("SEAPLANE_VPC_CIDR", "10.0.0.0/16")
 		if _, err := vpcService.Apply(&exec.SeaplaneVPCArgs{
 			AWSRegion:        &region,
 			NamePrefix:       &clusterName,
@@ -477,6 +477,14 @@ func newSeaplaneBackend(profile profilehandler.ProfileHandler, workspace string)
 		encodedStr := string(encoded)
 		return &encodedStr
 	}
+	// Machine network: the profile value wins, otherwise default to the VPC
+	// CIDR (rosa CLI parity — nodes live in that VPC).
+	machineCIDR := optionalString(profile.Profile().GetMachineCIDR())
+	if machineCIDR == nil {
+		machineCIDR = &vpcCIDR
+	}
+	// API server allow list: default fully open (rosa CLI parity).
+	apiAllowedCIDRBlocks := `["0.0.0.0/0"]`
 	clusterArgs := &exec.SeaplaneClusterArgs{
 		SeaplaneURL:                    &seaplaneURL,
 		ReleaseImage:                   &releaseImage,
@@ -495,10 +503,15 @@ func newSeaplaneBackend(profile profilehandler.ProfileHandler, workspace string)
 		ComponentRoutes:                componentRoutesValue,
 		EnabledCapabilities:            jsonList(profile.Profile().GetEnableClusterCapabilities()),
 		DisabledCapabilities:           jsonList(profile.Profile().GetDisableClusterCapabilities()),
-		MachineCIDR:                    optionalString(profile.Profile().GetMachineCIDR()),
-		PodCIDR:                        optionalString(profile.Profile().GetPodCIDR()),
-		ServiceCIDR:                    optionalString(profile.Profile().GetServiceCIDR()),
-		HostPrefix:                     optionalInt64(int64(profile.Profile().GetHostPrefix())),
+		// The rosa CLI bridge always defaults the machine network to the VPC
+		// CIDR and opens the API server allow list; mirror both so TF-created
+		// clusters match CLI-created ones (nodes must reach the API server
+		// through the load balancer to register).
+		MachineCIDR:          machineCIDR,
+		APIAllowedCIDRBlocks: &apiAllowedCIDRBlocks,
+		PodCIDR:              optionalString(profile.Profile().GetPodCIDR()),
+		ServiceCIDR:          optionalString(profile.Profile().GetServiceCIDR()),
+		HostPrefix:           optionalInt64(int64(profile.Profile().GetHostPrefix())),
 	}
 	// Customer AWS tags are applied at provisioning time only, so they can only
 	// be set on create.

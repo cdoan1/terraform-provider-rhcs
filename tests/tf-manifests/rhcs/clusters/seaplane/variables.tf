@@ -143,3 +143,9 @@ variable "host_prefix" {
   description = "Prefix size allocated to each node from the pod CIDR. If unset the platform default (23) applies. Requires pod_cidr"
   default     = null
 }
+
+variable "api_allowed_cidr_blocks" {
+  type        = string
+  description = "JSON-encoded allow list of CIDR blocks that can access the API server (e.g. jsonencode([\"0.0.0.0/0\"]))"
+  default     = null
+}
