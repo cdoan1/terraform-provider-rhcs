@@ -71,7 +71,7 @@ var _ = Describe("Seaplane NodePool autoscaling", ci.Day2, ci.SeaplaneValidated,
 		Expect(subnetID).NotTo(BeNil())
 
 		clusterName := cluster.Name
-		nodePoolName := fmt.Sprintf("%s-autoscaling", clusterName)
+		nodePoolName := fmt.Sprintf("%s.autoscaling", clusterName)
 		nodePoolService, err := exec.NewSeaplaneNodePoolService(workspace + "-nodepool")
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(func(_ SpecContext) {

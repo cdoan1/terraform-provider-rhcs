@@ -79,7 +79,7 @@ var _ = Describe("Seaplane GPU machine pools", ci.Day2, ci.SeaplaneValidated, fu
 		Expect(subnetID).NotTo(BeNil())
 
 		clusterName := cluster.Name
-		nodePoolName := clusterName + "-gpu"
+		nodePoolName := clusterName + ".gpu"
 		nodePoolService, err := exec.NewSeaplaneNodePoolService(workspace + "-nodepool")
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(func(_ SpecContext) {

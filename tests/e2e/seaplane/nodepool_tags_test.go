@@ -71,7 +71,7 @@ var _ = Describe("Seaplane NodePool tags", ci.Day2, ci.SeaplaneValidated, func()
 		Expect(subnetID).NotTo(BeNil())
 
 		clusterName := cluster.Name
-		nodePoolName := clusterName + "-tags"
+		nodePoolName := clusterName + ".tags"
 		nodePoolService, err := exec.NewSeaplaneNodePoolService(workspace + "-nodepool")
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(func(_ SpecContext) {
@@ -175,7 +175,7 @@ var _ = Describe("Seaplane NodePool tags validation", ci.Day1Negative, ci.Seapla
 
 		clusterID := "dummy-cluster-id"
 		clusterName := "dummy-cluster"
-		nodePoolName := clusterName + "-tags-invalid"
+		nodePoolName := clusterName + ".tags-invalid"
 		instanceType := "m5.xlarge"
 		replicas := 1
 		subnetID := "subnet-dummy"
