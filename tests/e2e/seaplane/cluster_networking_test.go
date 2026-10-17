@@ -73,8 +73,10 @@ var _ = Describe("Seaplane cluster network CIDRs", ci.Day1, ci.SeaplaneValidated
 		By("Verifying the networking through the Platform API")
 		seaplaneURL := os.Getenv("SEAPLANE_URL")
 		Expect(seaplaneURL).NotTo(BeEmpty())
+		// The Platform API routes clusters by metadata.name; clusterID is the
+		// Terraform identity (metadata.uid), so look up by the cluster name.
 		cluster, err := mustBuildSeaplaneClient(seaplaneURL, profileHandler.Profile().GetRegion()).
-			SeaplaneV1alpha1().Clusters().Get(ctx, clusterID, spplatform.GetOptions{})
+			SeaplaneV1alpha1().Clusters().Get(ctx, output.ClusterName, spplatform.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
 		networking := cluster.Spec.HostedCluster.Networking

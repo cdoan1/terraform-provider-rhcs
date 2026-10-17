@@ -86,8 +86,10 @@ var _ = Describe("Seaplane cluster capabilities id:ROSAENG-65243", ci.Day1, ci.S
 		if region == "" {
 			region = profileHandler.Profile().GetRegion()
 		}
+		// The Platform API routes clusters by metadata.name; clusterID is the
+		// Terraform identity (metadata.uid), so look up by the cluster name.
 		cluster, err := mustBuildSeaplaneClient(seaplaneURL, region).
-			SeaplaneV1alpha1().Clusters().Get(ctx, clusterID, spplatform.GetOptions{})
+			SeaplaneV1alpha1().Clusters().Get(ctx, output.ClusterName, spplatform.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
 		capabilities := cluster.Spec.HostedCluster.Capabilities

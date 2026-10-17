@@ -63,7 +63,14 @@ var _ = Describe("Seaplane GPU machine pools", ci.Day2, ci.SeaplaneValidated, fu
 		Expect(region).NotTo(BeEmpty())
 
 		seaplaneClient := mustBuildSeaplaneClient(seaplaneURL, region)
-		cluster, err := seaplaneClient.SeaplaneV1alpha1().Clusters().Get(ctx, clusterID, spplatform.GetOptions{})
+		// The Platform API routes clusters by metadata.name; clusterID is the
+		// Terraform identity (metadata.uid), so read the name from the cluster
+		// Terraform output before the lookup.
+		clusterService, clusterServiceErr := exec.NewSeaplaneClusterService(workspace)
+		Expect(clusterServiceErr).NotTo(HaveOccurred())
+		clusterOutput, clusterOutputErr := clusterService.Output()
+		Expect(clusterOutputErr).NotTo(HaveOccurred())
+		cluster, err := seaplaneClient.SeaplaneV1alpha1().Clusters().Get(ctx, clusterOutput.ClusterName, spplatform.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cluster.Spec.HostedCluster.Platform.AWS).NotTo(BeNil())
 		Expect(cluster.Spec.HostedCluster.Platform.AWS.CloudProviderConfig).NotTo(BeNil())
