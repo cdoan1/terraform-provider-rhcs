@@ -32,6 +32,9 @@ var FeatureBreakGlassCredential = Label("feature-break-glass-credential")
 var FeatureImageMirror = Label("feature-image-mirror")
 var SeaplaneValidated = Label("seaplane-validated")
 
+// isolation testing
+var SeaplaneOne = Label("seaplane-one")
+
 // day1/day1-post and day2
 var Day1 = Label("day1")
 var Day1Prepare = Label("day1-prepare")

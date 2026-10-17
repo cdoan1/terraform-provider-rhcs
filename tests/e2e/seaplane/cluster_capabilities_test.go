@@ -32,7 +32,7 @@ import (
 // registry pod health. In the ephemeral environment the registry is
 // enabled-by-default but not backed by storage (image-registry CO Degraded
 // with StorageExists=False), which is out of scope here.
-var _ = Describe("Seaplane cluster capabilities id:ROSAENG-65243", ci.Day1, ci.SeaplaneValidated, func() {
+var _ = Describe("Seaplane cluster capabilities id:ROSAENG-65243", ci.Day1, ci.SeaplaneValidated, ci.SeaplaneOne, func() {
 	// requiredProfile is pinned by this spec instead of being selected through
 	// the CLUSTER_PROFILE environment variable, so the spec is self-sufficient:
 	// it runs with its required configuration regardless of the ambient profile
@@ -94,7 +94,14 @@ var _ = Describe("Seaplane cluster capabilities id:ROSAENG-65243", ci.Day1, ci.S
 
 		capabilities := cluster.Spec.HostedCluster.Capabilities
 		Expect(capabilities).NotTo(BeNil(), "capabilities must be reported on the hosted cluster spec")
-		Expect(capabilities.Disabled).To(ContainElements(disabled))
+		// capabilities.Disabled is []OptionalCapability (a named string type);
+		// convert to plain strings so gomega's set matching compares the same
+		// element types as the profile list.
+		var actualDisabled []string
+		for _, capability := range capabilities.Disabled {
+			actualDisabled = append(actualDisabled, string(capability))
+		}
+		Expect(actualDisabled).To(ConsistOf(disabled))
 		if enabled := profileHandler.Profile().GetEnableClusterCapabilities(); len(enabled) == 0 {
 			Expect(capabilities.Enabled).To(BeEmpty(),
 				"no capabilities were enabled, so capabilities.enabled must be empty")
