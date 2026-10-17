@@ -166,6 +166,44 @@ Status legend: **Covered** (V2 spec exists) · **Partial** (some coverage, gaps 
 
 ---
 
+### 3.8 Machine pool replica scaling and scale-to-zero
+
+Audited 2026-10-17; queued as post-PR work (see §5).
+
+Replica-scaling coverage that exists today:
+
+| Suite | Spec | What it does | Direction |
+|---|---|---|---|
+| V1+V2 dual-backend | hcp_machine_pool_test.go "updates fixed replicas through the selected backend" (`SeaplaneValidated`) | `ScaleNodePool(ctx, nodePool, 2, 3)` — create at 2, update to 3, verify through the backend API | Up only |
+| V1 classic | [id:68296] "can enable/disable/update autoscaling" (Critical) | autoscaling min 3/max 6 updated to 6/12; asserts the config values in OCM, never actual node counts | Up only |
+| V1 HCP | [id:72505] "can create/edit autoscaling" (Critical) | create + edit min/max; config-value assertions only | Up only |
+| V2 | sanity_test.go Phase 5 | np2 scaled 1 to 2, verified via Terraform output and Platform API (replicas + Ready) | Up only |
+| V2 | nodepool_autoscaling_test.go | min/max from profile, then min+1/max+2, verified via Platform API | Up only |
+
+Scale-to-zero findings:
+
+- No spec in either suite performs a downscale at all — fixed-replica down
+  (for example 3 to 1) and autoscaling min reduction below the create value
+  are both untested; every scaling assertion goes upward.
+- The only `replicas := 0` occurrences in V1 are incidental: [id:73068] and
+  [id:73069] (security-group specs) create pools at 0 replicas as a
+  cost-saving workaround but assert nothing about zero-scaling behavior.
+- `min_replicas: 0` appears in the HCP and `seaplane-hcp-ad` profiles as an
+  autoscaling floor config, and the V2 nodepool handler validation permits
+  `min_replicas >= 0` — but no test creates at zero and verifies the node
+  count actually reaching 0, nor scales an active pool down to 0 and back.
+
+**Verdict: scaling up is covered (config-level in V1, API-verified in V2).
+Scaling down has zero coverage. Scaling to zero has zero coverage in both
+the V1 and V2 suites.**
+
+Proposed spec (post-PR): create a nodepool at 2 replicas, scale to 0,
+verify the Platform API reports 0 and the pool stays Ready, then scale back
+to 1 and verify recovery — proving both the down path and that zero is not a
+terminal state. Worth pairing with the autoscaling variant (min_replicas 0)
+and noting the interaction with the PDB-blocked-deletion quirk observed on
+sanity np1.
+
 ## 4. Plan
 
 ### Phase 1 — mechanical unification (small, no behavior change)
@@ -204,6 +242,7 @@ Tracked for follow-up; none of these block the current PR:
 | 6 | Upstream `pathbind-gen`: surface override descriptions in the TF schema instead of `{{.GoName}}.` | terse schema descriptions today |
 | 7 | Pin `seaplane-custom-cidrs` in the networking spec (self-sufficient, like capabilities) and label-filter CI jobs per phase | §4 Phase 1 follow-on |
 | 8 | Re-run the full e2e matrix after the get-by-name fix (day1 + day2) and record evidence in the PR | PR proof section |
+| 9 | **Replica scale-down and scale-to-zero specs** — no V1 or V2 spec downscales today; write the 2→0→back-to-1 spec described in §3.8 | §3.8 audit (2026-10-17) |
 
 ## 6. Open questions
 
