@@ -190,7 +190,22 @@ Adopt the V1 execution model for V2, keeping per-spec clusters only where create
 
 ---
 
-## 5. Open questions
+## 5. Deferred work (TODO)
+
+Tracked for follow-up; none of these block the current PR:
+
+| # | Item | Source |
+|---|---|---|
+| 1 | **Examples coverage for the new attributes** — update `examples/resources/rhcs_cluster_seaplane/main.tf` (capabilities, network CIDRs) and create `examples/resources/rhcs_nodepool_seaplane/` (tags); regenerate docs | `docs-and-examples.md` requires example updates with schema changes; missed in the current PR |
+| 2 | `terraform validate` over `tests/tf-manifests/**` in pre-push checks | Phase 1 item 3 — the undeclared-CIDR-variable incident was only caught mid-e2e |
+| 3 | Shared-cluster phase model (day1-prepare / day2 / destroy) | §4 Phase 2 |
+| 4 | Feature backlog: nodepool day-2 family (P1), cluster fields (P2), investigations (P3) | §4 Phase 3, §3 gap tables |
+| 5 | Refresh `developer-docs/seaplane.md` — schema tables predate the pathbind generation and several sections are stale | doc audit |
+| 6 | Upstream `pathbind-gen`: surface override descriptions in the TF schema instead of `{{.GoName}}.` | terse schema descriptions today |
+| 7 | Pin `seaplane-custom-cidrs` in the networking spec (self-sufficient, like capabilities) and label-filter CI jobs per phase | §4 Phase 1 follow-on |
+| 8 | Re-run the full e2e matrix after the get-by-name fix (day1 + day2) and record evidence in the PR | PR proof section |
+
+## 6. Open questions
 
 1. Should external auth / image mirror / allowed CIDR blocks be exposed as friendly TF attributes (like the network CIDRs) or stay raw JSON passthrough?
 2. Upgrade policies: in scope for the TF provider at all in EP1, or deferred?
