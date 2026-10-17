@@ -5,6 +5,7 @@ package seaplane
 
 import (
 	"os"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -211,7 +212,11 @@ var _ = Describe("Seaplane NodePool tags validation", ci.Day1Negative, ci.Seapla
 				Tags:         &tags,
 			})
 			Expect(applyErr).To(HaveOccurred())
-			Expect(applyErr.Error()).To(ContainSubstring(expectedErrors[i]))
+			// Terraform wraps diagnostic text at ~80 columns; collapse the
+			// whitespace so the expected substrings match regardless of where
+			// the line breaks fall.
+			normalizedErr := strings.Join(strings.Fields(applyErr.Error()), " ")
+			Expect(normalizedErr).To(ContainSubstring(expectedErrors[i]))
 
 			_, destroyErr := nodePoolService.Destroy()
 			Expect(destroyErr).NotTo(HaveOccurred())
