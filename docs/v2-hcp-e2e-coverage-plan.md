@@ -12,8 +12,8 @@
 |------|----------|------|-----------|-----|--------|
 | ROSAENG-65173 node pool tags | ✅ `tags` map + validation + encode/flatten in `nodepool_handler.go` | ✅ | ✅ 5 specs (create/update/round-trip/negatives) | ✅ `nodepool_tags_test.go` (gated on `tagging: true` profile) | **Code complete — pending e2e run** |
 | ROSAENG-65204 GPU machine pools | n/a (no provider change needed) | n/a | n/a | ✅ `nodepool_gpu_test.go` (opt-in via `SEAPLANE_NODEPOOL_GPU_INSTANCE_TYPE`) | **Code complete — pending e2e run** |
-| ROSAENG-65243 capabilities | ✅ `enabled/disabled_capabilities` JSON-string attributes (pathbind passthrough — note: SDK stores `[]OptionalCapability`, a named type pathbind cannot convert from `[]string`, so the repo's JSON-string convention for arrays applies, same as `componentRoutes`/`resource_tags`) + whitelist/overlap validation | ✅ (via subsystem) | ✅ 4 specs (create body, replacement plan, invalid capability, enabled+disabled overlap) | ✅ `cluster_capabilities_test.go` + profile `seaplane-disable-caps` (pinned by the spec) | **e2e validated 2026-10-17** (day1 filter, ~18m: create → Ready → TF output + Platform API assertions → clean teardown) |
-| ROSAENG-65120 network CIDRs | ✅ top-level `machine_cidr`/`pod_cidr`/`service_cidr` (plain CIDR strings) + `host_prefix` (V1 parity), consumer-only with handler encoding into the networking arrays; validation: CIDR parse, pairwise overlaps (V1 38857 wording parity), host-prefix and pod-prefix, mutual exclusion with the raw `network` bundle | ✅ (via subsystem) | ✅ 7 specs (create body, drift-free round-trip, replacement plan, invalid CIDR, overlap, host-prefix rules, bundle conflict) | ✅ `cluster_networking_test.go` + profile `seaplane-custom-cidrs` | **Code complete — pending e2e run** |
+| ROSAENG-65243 capabilities | ✅ `enabled/disabled_capabilities` JSON-string attributes (pathbind passthrough — note: SDK stores `[]OptionalCapability`, a named type pathbind cannot convert from `[]string`, so the repo's JSON-string convention for arrays applies, same as `componentRoutes`/`resource_tags`) + whitelist/overlap validation | ✅ (via subsystem) | ✅ 4 specs (create body, replacement plan, invalid capability, enabled+disabled overlap) | ✅ `cluster_capabilities_test.go` + profile `seaplane-no-caps` (pinned by the spec) | **e2e validated 2026-10-17** (day1 filter, ~18m: create → Ready → TF output + Platform API assertions → clean teardown) |
+| ROSAENG-65120 network CIDRs | ✅ top-level `machine_cidr`/`pod_cidr`/`service_cidr` (plain CIDR strings) + `host_prefix` (V1 parity), consumer-only with handler encoding into the networking arrays; validation: CIDR parse, pairwise overlaps (V1 38857 wording parity), host-prefix and pod-prefix, mutual exclusion with the raw `network` bundle | ✅ (via subsystem) | ✅ 7 specs (create body, drift-free round-trip, replacement plan, invalid CIDR, overlap, host-prefix rules, bundle conflict) | ✅ `cluster_networking_test.go` + profile `seaplane-cidrs` | **Code complete — pending e2e run** |
 
 Additional fixes landed along the way:
 - Restored the `rhcs_oidcconfig_seaplane` `name` attribute to `required`/client-selected (a regression from commit 1dad70e7 had reverted the override to `computed`, breaking 2 subsystem specs at HEAD).
@@ -153,7 +153,7 @@ No provider change required — `instance_type` already passes through and V2 do
 - Regenerate; docs/examples.
 
 **E2E** — new `tests/e2e/seaplane/cluster_capabilities_test.go`, mirroring rosa CLI ROSAENG-68175 (profile-gated full-lifecycle style):
-1. Profile `seaplane-disable-caps` (pinned by the spec) with `disable_cluster_capabilities: ["ImageRegistry"]`.
+1. Profile `seaplane-no-caps` (pinned by the spec) with `disable_cluster_capabilities: ["ImageRegistry"]`.
 2. Create cluster via `clusterworkflow` backend; assert TF output echoes the setting.
 3. Verify via Platform API: `cluster.Spec.HostedCluster.Capabilities.Disabled` contains `ImageRegistry` and `Enabled` is empty/absent.
 4. Verify cluster reaches `Ready` with the capability disabled.
@@ -181,7 +181,7 @@ No provider change required — `instance_type` already passes through and V2 do
   - `validateClusterNetwork` (V1 `[id:38857]` parity, provider-side): CIDR parse errors; block-size checks (single-AZ machine CIDR `/16`–`/25`); service/pod CIDR "range too small" checks; pairwise overlap checks (machine/service, machine/pod, service/pod); host prefix 23–26; consistency of host prefix with pod CIDR.
 - Wire manifests/args/output, clusterworkflow, profilehandler (`machine_cidr`, `service_cidr`, `pod_cidr`, `host_prefix` profile fields already exist in `Profile`).
 
-**E2E** — new `tests/e2e/seaplane/cluster_networking_test.go` (profile-gated full-lifecycle style), new profile `seaplane-custom-cidrs`:
+**E2E** — new `tests/e2e/seaplane/cluster_networking_test.go` (profile-gated full-lifecycle style), new profile `seaplane-cidrs`:
 1. Positive: create cluster with custom, non-overlapping `pod_cidr`/`service_cidr` and `host_prefix` (e.g. pod `10.200.0.0/16`, service `172.30.0.0/16`, host prefix 24). Constraint: with the byovpc flow, `machine_cidr` must contain the VPC CIDR (default `10.0.0.0/16` via `SEAPLANE_VPC_CIDR`) — either keep machine CIDR = VPC CIDR or set a matching custom VPC CIDR in the profile.
 2. Verify via Platform API: `cluster.Spec.HostedCluster.Networking.{MachineNetwork,ClusterNetwork,ServiceNetwork}` reflect the values (including `HostPrefix` inside clusterNetwork entries); verify TF outputs.
 3. Wait for cluster `Ready` (networking misconfiguration would fail provisioning — a strong end-to-end signal).
@@ -199,7 +199,7 @@ No provider change required — `instance_type` already passes through and V2 do
 
 | Piece | Changes |
 |-------|---------|
-| `tests/ci/profiles/tf_seaplane_cluster_profiles.yml` | New profiles: `seaplane-nodepool-tags` (or reuse `tagging: true`), `seaplane-disable-caps`, `seaplane-custom-cidrs` |
+| `tests/ci/profiles/tf_seaplane_cluster_profiles.yml` | New profiles: `seaplane-nodepool-tags` (or reuse `tagging: true`), `seaplane-no-caps`, `seaplane-cidrs` |
 | `tests/e2e/seaplane/` | New files: `nodepool_tags_test.go`, `nodepool_gpu_test.go`, `cluster_capabilities_test.go`, `cluster_networking_test.go` |
 | `tests/utils/exec/seaplane_cluster.go` | Add `EnabledCapabilities`, `DisabledCapabilities`, `MachineCIDR`, `ServiceCIDR`, `PodCIDR`, `HostPrefix` (+ outputs) |
 | `tests/utils/exec/seaplane_nodepool.go` | Fix `Tags` to `*map[string]string`; add tags output |

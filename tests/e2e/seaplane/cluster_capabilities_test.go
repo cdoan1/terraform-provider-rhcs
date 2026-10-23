@@ -39,7 +39,7 @@ var _ = Describe("Seaplane cluster capabilities id:ROSAENG-65243", ci.Day1, ci.S
 	// of the suite run. The name must stay within the 18-character Seaplane
 	// cluster-name limit because clusterworkflow defaults the cluster name to
 	// the profile name.
-	const requiredProfile = "seaplane-disable-caps"
+	const requiredProfile = "seaplane-no-caps"
 
 	It("creates a cluster with the ImageRegistry capability disabled", func(ctx SpecContext) {
 		profileHandler, err := profilehandler.NewProfileHandlerByName(requiredProfile)

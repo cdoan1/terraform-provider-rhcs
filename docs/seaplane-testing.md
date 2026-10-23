@@ -14,7 +14,7 @@
 | Spec selection | Labels (`day1`, `day1-prepare`, `day1-negative`, `day2`, `day3`, `destroy`, feature labels) selected by CI through `--label-filter` | Profile gating (`Skip` unless the profile enables the feature); one profile per CI job |
 | Ordering | Enforced by **CI job sequencing** (day-1 job → day-2 jobs → destroy job), not by ginkgo | None — and none needed today: no spec depends on another |
 | Entry point | `make e2e_test LabelFilter=...` (5h, `-r`, `--focus-file tests/e2e/.*`) | `make e2e-seaplane` (3h, no label filter) |
-| Cluster cost per job | 1 cluster amortized across the phase set | **1 cluster per spec** (e.g. `seaplane-custom-cidrs` job = sanity's cluster + networking's cluster = 2 clusters) |
+| Cluster cost per job | 1 cluster amortized across the phase set | **1 cluster per spec** (e.g. `seaplane-cidrs` job = sanity's cluster + networking's cluster = 2 clusters) |
 
 Notes:
 - `make e2e_test`'s `--focus-file tests/e2e/.*` also matches the seaplane package, and `clusterworkflow.NewFetcher`/`NewDestroyer` dispatch on cluster type (SEAPLANE is supported) — but the V1 spec *bodies* are OCM-based (`cms` services) and only 5 of 25 V1 test files are cluster-type aware, so pointing `make e2e_test` at a seaplane profile fails outside a strict label filter.
@@ -31,7 +31,7 @@ Notes:
 | cluster_day1_test.go | creates a cluster with a scheduler profile | profile `scheduler_profile`; own cluster | ROSAENG-68167 |
 | cluster_day1_test.go | configures autoscaler during cluster creation | profile autoscaler fields; own cluster | ROSAENG-65114 |
 | cluster_day2_test.go | updates autoscaler and component routes as a day-2 operation | profile; own cluster | ROSAENG-65114 |
-| cluster_capabilities_test.go | creates a cluster with the ImageRegistry capability disabled | profile `seaplane-disable-caps` (pinned by the spec); own cluster | ROSAENG-65243 |
+| cluster_capabilities_test.go | creates a cluster with the ImageRegistry capability disabled | profile `seaplane-no-caps` (pinned by the spec); own cluster | ROSAENG-65243 |
 | cluster_networking_test.go | creates a cluster with custom machine/pod/service CIDRs | profile CIDR fields; own cluster | ROSAENG-65120 |
 | nodepool_tags_test.go | creates a nodepool with tags and updates them in place | profile `tagging`; own cluster | ROSAENG-65173 |
 | nodepool_tags_test.go | rejects invalid nodepool tags during validation | none (client-side; no cluster needed) | ROSAENG-65173 |
@@ -240,7 +240,7 @@ Tracked for follow-up; none of these block the current PR:
 | 4 | Feature backlog: nodepool day-2 family (P1), cluster fields (P2), investigations (P3) | §4 Phase 3, §3 gap tables |
 | 5 | Refresh `developer-docs/seaplane.md` — schema tables predate the pathbind generation and several sections are stale | doc audit |
 | 6 | Upstream `pathbind-gen`: surface override descriptions in the TF schema instead of `{{.GoName}}.` | terse schema descriptions today |
-| 7 | Pin `seaplane-custom-cidrs` in the networking spec (self-sufficient, like capabilities) and label-filter CI jobs per phase | §4 Phase 1 follow-on |
+| 7 | Pin `seaplane-cidrs` in the networking spec (self-sufficient, like capabilities) and label-filter CI jobs per phase | §4 Phase 1 follow-on |
 | 8 | Re-run the full e2e matrix after the get-by-name fix (day1 + day2) and record evidence in the PR | PR proof section |
 | 9 | **Replica scale-down and scale-to-zero specs** — no V1 or V2 spec downscales today; write the 2→0→back-to-1 spec described in §3.8 | §3.8 audit (2026-10-17) |
 

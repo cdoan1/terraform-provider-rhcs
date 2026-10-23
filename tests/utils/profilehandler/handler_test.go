@@ -53,12 +53,12 @@ func TestNewProfileHandlerByName(t *testing.T) {
 	// constructor must resolve them without CLUSTER_PROFILE being set.
 	t.Setenv("CLUSTER_PROFILE", "")
 
-	handler, err := NewProfileHandlerByName("seaplane-disable-caps")
+	handler, err := NewProfileHandlerByName("seaplane-no-caps")
 	if err != nil {
 		t.Fatalf("loading profile by name: %v", err)
 	}
-	if handler.Profile().GetName() != "seaplane-disable-caps" {
-		t.Errorf("profile name = %q, want seaplane-disable-caps", handler.Profile().GetName())
+	if handler.Profile().GetName() != "seaplane-no-caps" {
+		t.Errorf("profile name = %q, want seaplane-no-caps", handler.Profile().GetName())
 	}
 	if got := handler.Profile().GetClusterType(); got != constants.SEAPLANE {
 		t.Errorf("cluster type = %v, want seaplane", got)
